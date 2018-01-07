@@ -77,7 +77,7 @@ exports.updateStore = async (req, res) => {
   }).exec();
   req.flash(
     "success",
-    `Successfully updated <strong>${store.name}<strong>. <a href="/stores/${store.slug}">View Store</a>`
+    `Successfully updated <strong>${store.name}<strong>. <a href="/stores/${store.slug}">View Store</a>`,
   );
   res.redirect(`/stores/${store._id}/edit`);
   //redirect them the store and tell them it worked
@@ -90,7 +90,10 @@ exports.getStoreBySlug = async (req, res, next) => {
 };
 
 exports.getStoresByTag = async (req, res) => {
-  const tags = await Store.getTagsList();
   const tag = req.params.tag;
-  res.render('tag', { tags, title: 'Tags' });
+  const tagQuery = tag || {$exists: true };
+  const tagsPromise = Store.getTagsList();
+  const storesPromise = Store.find({ tags: tagQuery });
+  const [tags, stores] = await Promise.all([tagsPromise, storesPromise]);
+  res.render('tag', { tags, title: 'Tags', tag, stores });
 };
